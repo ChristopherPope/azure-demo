@@ -1,0 +1,15 @@
+scp e:\temp\AzureDemo.zip azadmin@20.22.232.215:c:\inetpub\wwwroot
+
+Remove-Item -Recurse -Force AzureDemo
+
+Expand-Archive -Path AzureDemo.zip
+
+https://4sysops.com/archives/internet-information-services-iis-on-server-core/
+
+https://learn.microsoft.com/en-us/iis/get-started/whats-new-in-iis-10/iisadministration-powershell-cmdlets
+
+$sm = Get-IISServerManager
+
+
+
+20.22.232.215

@@ -1,7 +1,9 @@
-﻿using Azure;
-using Azure.Data.Tables;
+﻿using Azure.Data.Tables;
+using Azure.Identity;
 using AzureDemo.Models;
+using Newtonsoft.Json;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 
@@ -9,15 +11,15 @@ namespace AzureDemo.Controllers
 {
     public class HomeController : Controller
     {
-        public ActionResult Index()
+        public async Task<ActionResult> Index()
         {
-            var data = RunDemo().Result;
+            var data = await RunDemoAsync();
 
             return View(data);
         }
 
 
-        private Task<PageData> RunDemo()
+        private async Task<PageData> RunDemoAsync()
         {
             //var keyValultUrl = "https://fortsa.vault.azure.net";
             //var secretName = "myapp";
@@ -36,17 +38,20 @@ namespace AzureDemo.Controllers
 
             //var entities = tableClient.Query<MyEntity>();
 
-            return Task.FromResult(new PageData { Results = "This is not the data you were looking for." });
+            return await ConnectToUserTableAsync();
         }
-    }
 
-    class MyEntity : ITableEntity
-    {
-        public string PartitionKey { get; set; }
-        public string RowKey { get; set; }
-        public DateTimeOffset? Timestamp { get; set; }
-        public ETag ETag { get; set; }
-        public string Value { get; set; }
+        private async Task<PageData> ConnectToUserTableAsync()
+        {
+            var credential = new DefaultAzureCredential();
+            var tableEndpoint = "https://stw-storage.table.cosmos.azure.com:443/";
+            var tableName = "users";
 
+            var tableClient = new TableClient(new Uri(tableEndpoint), tableName, credential);
+            var users = await tableClient.QueryAsync<User>().ToListAsync();
+            var json = JsonConvert.SerializeObject(users);
+
+            return new PageData(json);
+        }
     }
 }
