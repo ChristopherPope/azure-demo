@@ -1,7 +1,6 @@
 ﻿using Azure;
 using Azure.Data.Tables;
-using Azure.Identity;
-using Azure.Security.KeyVault.Secrets;
+using AzureDemo.Models;
 using System;
 using System.Threading.Tasks;
 using System.Web.Mvc;
@@ -12,28 +11,32 @@ namespace AzureDemo.Controllers
     {
         public ActionResult Index()
         {
-            return View();
+            var data = RunDemo().Result;
+
+            return View(data);
         }
 
 
-        private async Task Demo()
+        private Task<PageData> RunDemo()
         {
-            var keyValultUrl = "https://fortsa.vault.azure.net";
-            var secretName = "myapp";
+            //var keyValultUrl = "https://fortsa.vault.azure.net";
+            //var secretName = "myapp";
 
-            var credential = new DefaultAzureCredential();
-            var secretClient = new SecretClient(new System.Uri(keyValultUrl), credential);
+            //var credential = new DefaultAzureCredential();
+            //var secretClient = new SecretClient(new System.Uri(keyValultUrl), credential);
 
-            var secret = secretClient.GetDeletedSecret(secretName);
+            //var secret = secretClient.GetDeletedSecret(secretName);
 
-            var secretValue = secret.Value;
+            //var secretValue = secret.Value;
 
-            var tableEndpoint = "https://fortsab0b6.table.core.windows.net";
-            var tableName = "outTable";
+            //var tableEndpoint = "https://fortsab0b6.table.core.windows.net";
+            //var tableName = "outTable";
 
-            var tableClient = new TableClient(new Uri(tableEndpoint), tableName, credential);
+            //var tableClient = new TableClient(new Uri(tableEndpoint), tableName, credential);
 
-            var entities = tableClient.Query<MyEntity>();
+            //var entities = tableClient.Query<MyEntity>();
+
+            return Task.FromResult(new PageData { Results = "This is not the data you were looking for." });
         }
     }
 
