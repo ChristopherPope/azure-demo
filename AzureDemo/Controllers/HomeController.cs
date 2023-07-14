@@ -12,15 +12,41 @@ namespace AzureDemo.Controllers
 {
     public class HomeController : Controller
     {
-        public async Task<ActionResult> Index()
+        public ActionResult Index(PageData pageData)
         {
-            var data = await RunDemoAsync();
+            return View(pageData);
+        }
 
-            return View(data);
+        public async Task<ActionResult> ReadUsers()
+        {
+            var pageData = await InternalReadUsers();
+
+            return RedirectToAction("Index", pageData);
+        }
+
+        public async Task<ActionResult> CreateUsers()
+        {
+            await InternalCreateUsers();
+
+            return RedirectToAction("Index", new PageData("SUCCESS"));
+        }
+
+        public async Task<ActionResult> Readuser()
+        {
+            var pageData = await InternalReadUser("bugs.bunny@associates.tsa.dhs.gov");
+
+            return RedirectToAction("Index", pageData);
+        }
+
+        public ActionResult ConnectToUsersTable()
+        {
+            InternalConnectToUsersTable();
+
+            return RedirectToAction("Index", new PageData("SUCCESS"));
         }
 
 
-        private async Task<PageData> RunDemoAsync()
+        private void RunDemoAsync()
         {
             //var keyValultUrl = "https://fortsa.vault.azure.net";
             //var secretName = "myapp";
@@ -35,13 +61,9 @@ namespace AzureDemo.Controllers
             //var tableEndpoint = "https://fortsab0b6.table.core.windows.net";
             //var tableName = "outTable";
 
-            //var tableClient = new TableClient(new Uri(tableEndpoint), tableName, credential);
+            //var tableClient = new usersTable(new Uri(tableEndpoint), tableName, credential);
 
             //var entities = tableClient.Query<MyEntity>();
-
-
-            //return await ConnectToUserTableAsync();
-            return await ConnectToKeyVaultCertificate();
         }
 
         private async Task<PageData> ConnectToKeyVaultCertificate()
@@ -57,20 +79,38 @@ namespace AzureDemo.Controllers
             return new PageData($"Certificate name: {cert.Name}.");
         }
 
-        private async Task<PageData> ConnectToUserTableAsync()
+        private async Task<PageData> InternalReadUsers()
         {
-            var credential = new DefaultAzureCredential();
-            var tableEndpoint = "https://stw-storage.table.cosmos.azure.com:443/";
-            var tableName = "users";
-
-            var serviceClient = new TableServiceClient(new Uri(tableEndpoint), credential);
-
-            //var tableClient = new TableClient(new Uri(tableEndpoint), tableName, credential);
-            var tableClient = serviceClient.GetTableClient(tableName);
-            var users = await tableClient.QueryAsync<User>().ToListAsync();
+            var usersTable = InternalConnectToUsersTable();
+            var users = await usersTable.QueryAsync<User>().ToListAsync();
             var json = JsonConvert.SerializeObject(users);
 
             return new PageData(json);
+        }
+
+        private async Task<PageData> InternalReadUser(string email)
+        {
+            var usersTable = InternalConnectToUsersTable();
+            var users = await usersTable.QueryAsync<User>(u => u.Email == email).ToListAsync();
+            var json = JsonConvert.SerializeObject(users);
+
+            return new PageData(json);
+        }
+
+        private async Task InternalCreateUsers()
+        {
+            var usersTable = InternalConnectToUsersTable();
+            await usersTable.AddEntityAsync(new User("christopher.pope@associates.tsa.dhs.gov"));
+            await usersTable.AddEntityAsync(new User("bugs.bunny@associates.tsa.dhs.gov"));
+        }
+
+        private TableClient InternalConnectToUsersTable()
+        {
+            var credential = new DefaultAzureCredential();
+            var tableEndpoint = "https://stwuserfiles.table.core.windows.net/srpusers";
+            var tableName = "srpusers";
+
+            return new TableClient(new Uri(tableEndpoint), tableName, credential);
         }
     }
 }

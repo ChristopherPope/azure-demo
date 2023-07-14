@@ -4,8 +4,19 @@ using System;
 
 namespace AzureDemo.Models
 {
-    class User : ITableEntity
+    public class User : ITableEntity
     {
+        public User()
+        {
+        }
+
+        public User(string email)
+        {
+            Email = email;
+            PartitionKey = "SRP";
+            RowKey = email;
+        }
+
         public string PartitionKey { get; set; }
         public string RowKey { get; set; }
         public DateTimeOffset? Timestamp { get; set; }
