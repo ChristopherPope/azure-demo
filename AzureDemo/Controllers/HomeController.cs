@@ -79,11 +79,11 @@ namespace AzureDemo.Controllers
             var certificateName = "sci";
 
             var credential = new DefaultAzureCredential();
-            var secretClient = new CertificateClient(new System.Uri(keyValultUrl), credential);
-            var response = await secretClient.GetCertificateAsync(certificateName);
-            var cert = response.Value;
+            var certClient = new CertificateClient(new System.Uri(keyValultUrl), credential);
+            var certResponse = await certClient.DownloadCertificateAsync(certificateName);
+            var cert = certResponse.Value;
 
-            return new PageData($"Certificate name: {cert.Name}.");
+            return new PageData($"Subject: {cert.Subject}, SubjectName: {cert.SubjectName}, Issuer: {cert.Issuer}, FriendlyName: {cert.FriendlyName}, IssuerName: {cert.IssuerName}.");
         }
 
         private async Task<PageData> InternalReadUsers()
