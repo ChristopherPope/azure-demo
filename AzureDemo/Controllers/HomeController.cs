@@ -1,5 +1,6 @@
 ﻿using Azure.Data.Tables;
 using Azure.Identity;
+using Azure.Security.KeyVault.Certificates;
 using AzureDemo.Models;
 using Newtonsoft.Json;
 using System;
@@ -38,7 +39,22 @@ namespace AzureDemo.Controllers
 
             //var entities = tableClient.Query<MyEntity>();
 
-            return await ConnectToUserTableAsync();
+
+            //return await ConnectToUserTableAsync();
+            return await ConnectToKeyVaultCertificate();
+        }
+
+        private async Task<PageData> ConnectToKeyVaultCertificate()
+        {
+            var keyValultUrl = "https://pope-vault.vault.azure.net/";
+            var certificateName = "sci";
+
+            var credential = new DefaultAzureCredential();
+            var secretClient = new CertificateClient(new System.Uri(keyValultUrl), credential);
+            var response = await secretClient.GetCertificateAsync(certificateName);
+            var cert = response.Value;
+
+            return new PageData($"Certificate name: {cert.Name}.");
         }
 
         private async Task<PageData> ConnectToUserTableAsync()
@@ -47,7 +63,10 @@ namespace AzureDemo.Controllers
             var tableEndpoint = "https://stw-storage.table.cosmos.azure.com:443/";
             var tableName = "users";
 
-            var tableClient = new TableClient(new Uri(tableEndpoint), tableName, credential);
+            var serviceClient = new TableServiceClient(new Uri(tableEndpoint), credential);
+
+            //var tableClient = new TableClient(new Uri(tableEndpoint), tableName, credential);
+            var tableClient = serviceClient.GetTableClient(tableName);
             var users = await tableClient.QueryAsync<User>().ToListAsync();
             var json = JsonConvert.SerializeObject(users);
 
