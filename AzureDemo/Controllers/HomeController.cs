@@ -38,6 +38,13 @@ namespace AzureDemo.Controllers
             return RedirectToAction("Index", pageData);
         }
 
+        public async Task<ActionResult> ReadPrivateCert()
+        {
+            var pageData = await InternalReadPrivateCert();
+
+            return RedirectToAction("Index", pageData);
+        }
+
         public ActionResult ConnectToUsersTable()
         {
             InternalConnectToUsersTable();
@@ -66,7 +73,7 @@ namespace AzureDemo.Controllers
             //var entities = tableClient.Query<MyEntity>();
         }
 
-        private async Task<PageData> ConnectToKeyVaultCertificate()
+        private async Task<PageData> InternalReadPrivateCert()
         {
             var keyValultUrl = "https://pope-vault.vault.azure.net/";
             var certificateName = "sci";
