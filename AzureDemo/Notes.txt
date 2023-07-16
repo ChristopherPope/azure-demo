@@ -11,5 +11,6 @@ https://learn.microsoft.com/en-us/iis/get-started/whats-new-in-iis-10/iisadminis
 $sm = Get-IISServerManager
 
 
+https://stackoverflow.com/questions/56929205/azure-keyvault-sign-jwt-token
 
 20.22.232.215

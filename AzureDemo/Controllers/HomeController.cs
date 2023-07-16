@@ -17,6 +17,13 @@ namespace AzureDemo.Controllers
             return View(pageData);
         }
 
+        public async Task<ActionResult> ListTables()
+        {
+            var pageData = await InternalListTables();
+
+            return RedirectToAction("Index", pageData);
+        }
+
         public async Task<ActionResult> ReadUsers()
         {
             var pageData = await InternalReadUsers();
@@ -52,34 +59,13 @@ namespace AzureDemo.Controllers
             return RedirectToAction("Index", new PageData("SUCCESS"));
         }
 
-
-        private void RunDemoAsync()
-        {
-            //var keyValultUrl = "https://fortsa.vault.azure.net";
-            //var secretName = "myapp";
-
-            //var credential = new DefaultAzureCredential();
-            //var secretClient = new SecretClient(new System.Uri(keyValultUrl), credential);
-
-            //var secret = secretClient.GetDeletedSecret(secretName);
-
-            //var secretValue = secret.Value;
-
-            //var tableEndpoint = "https://fortsab0b6.table.core.windows.net";
-            //var tableName = "outTable";
-
-            //var tableClient = new usersTable(new Uri(tableEndpoint), tableName, credential);
-
-            //var entities = tableClient.Query<MyEntity>();
-        }
-
         private async Task<PageData> InternalReadPrivateCert()
         {
-            var keyValultUrl = "https://pope-vault.vault.azure.net/";
+            var keyValultUrl = new Uri("https://pope-vault.vault.azure.net/");
             var certificateName = "sci";
 
             var credential = new DefaultAzureCredential();
-            var certClient = new CertificateClient(new System.Uri(keyValultUrl), credential);
+            var certClient = new CertificateClient(keyValultUrl, credential);
             var certResponse = await certClient.DownloadCertificateAsync(certificateName);
             var cert = certResponse.Value;
 
@@ -98,7 +84,7 @@ namespace AzureDemo.Controllers
         private async Task<PageData> InternalReadUser(string email)
         {
             var usersTable = InternalConnectToUsersTable();
-            var users = await usersTable.QueryAsync<User>(u => u.Email == email).ToListAsync();
+            var users = await usersTable.QueryAsync<User>(u => u.Email.Equals(email, StringComparison.CurrentCultureIgnoreCase)).ToListAsync();
             var json = JsonConvert.SerializeObject(users);
 
             return new PageData(json);
@@ -114,10 +100,24 @@ namespace AzureDemo.Controllers
         private TableClient InternalConnectToUsersTable()
         {
             var credential = new DefaultAzureCredential();
-            var tableEndpoint = "https://stwuserfiles.table.core.windows.net/srpusers";
+            var tableEndpoint = new Uri("https://stwuserfiles.table.core.windows.net");
             var tableName = "srpusers";
 
-            return new TableClient(new Uri(tableEndpoint), tableName, credential);
+            return new TableClient(tableEndpoint, tableName, credential);
+        }
+
+        private async Task<PageData> InternalListTables()
+        {
+            var credential = new DefaultAzureCredential();
+            var tableEndpoint = new Uri("https://stwuserfiles.table.core.windows.net");
+            var tableClient = new TableServiceClient(tableEndpoint, credential);
+            var results = await tableClient
+                .QueryAsync(ti => ti.Name != "a")
+                .ToListAsync();
+            var tableNames = results.Select(ti => ti.Name);
+
+            var html = "Table Results: " + string.Join(", ", tableNames);
+            return new PageData(html);
         }
     }
 }
